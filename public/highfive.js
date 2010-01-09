@@ -11,20 +11,33 @@
         success = link.attr("data-success"),
         error = link.attr("data-failure"),
         options = { beforeSend: setContentType };
-    if (question && !confirm(question)) return false;
-    options.url = link.attr("href"); 
-    if (method == "get" || method == "post") { options.type = method }
-    else { options.type = "post" ; options.data = { _method: method } }
-    options.element = link;
-    if (success) options.success = function(response) { $("#" + success).html(response) }
-    else options.success = function(response) { try { eval(response) ; $(link).trigger("success", [response]) } catch(ex) { console.log(ex) } }
-    if (error) options.error = function(response) { $("#" + error).html(response) };
-    $.ajax(options);
+    if (!question || confirm(question)) {
+      options.url = link.attr("href"); 
+      if (method == "get" || method == "post")
+        options.type = method
+      else {
+        options.type = "post"
+        options.data = { _method: method }
+      }
+      options.element = link;
+      options.success = success ?
+        function(response)              { $("#" + success).html(response) } :
+        function(response, status, xhr) {
+          try {
+            eval(response)
+            link.trigger("success", [response, status, xhr])
+          } catch(ex) { console.log(ex) }
+        }
+      options.error = error ?
+        function(xhr, status, ex) { $("#" + error).html(xhr.responseText) } :
+        function(xhr, status, ex) { link.trigger("failure", [xhr, status, ex]) }
+      $.ajax(options);
+    }
+    return false
   }).live("click", function() { $(this).trigger("remote"); return false });
 
   // Spooky action at a distance (form_remote_tag).
   $("form[data-remote]").live("remote", function() {
-  try {
     var form = $(this),
         method = (form.attr("data-method") || "post").toLowerCase(),
         question = form.attr("data-confirm"),
@@ -32,18 +45,31 @@
         error = form.attr("data-failure"),
         buttons = form.find(":submit:enabled,button:enabled"),
         options = { beforeSend: setContentType };
-    if (question && !confirm(question)) return false;
-    options.url = form.attr("action"); 
-    options.data = form.serialize();
-    if (method == "get" || method == "post") { options.type = method }
-    else { options.type = "post" ; options.data = options.data + "&_method=" + method }
-    options.element = form;
-    if (success) options.success = function(response) { $("#" + success).html(response) }
-    else options.success = function(response) { try { eval(response) ; $(form).trigger("success", [response]) } catch(ex) { console.log(ex) } }
-    if (error) options.error = function(response) { $("#" + error).html(response) };
-    buttons.attr("disabled", "disabled");
-    options.complete = function(status) { buttons.attr("disabled", null) }
-    $.ajax(options);
-    } catch (ex) { alert(ex) }
+    if (!question || confirm(question)) {
+      options.url = form.attr("action"); 
+      options.data = form.serialize();
+      if (method == "get" || method == "post")
+        options.type = method
+      else {
+        options.type = "post"
+        options.data = options.data + "&_method=" + method
+      }
+      options.element = form;
+      options.success = success ?
+        function(response)              { $("#" + success).html(response) } :
+        function(response, status, xhr) {
+          try {
+            eval(response)
+            form.trigger("success", [response, status, xhr])
+          } catch(ex) { console.log(ex) }
+        }
+      options.error = error ?
+        function(xhr, status, ex) { $("#" + error).html(xhr.responseText) } :
+        function(xhr, status, ex) { form.trigger("failure", [xhr, status, ex]) }
+      buttons.attr("disabled", "disabled");
+      options.complete = function() { buttons.attr("disabled", null) }
+      $.ajax(options);
+    }
+    return false
   })
 }(jQuery))
