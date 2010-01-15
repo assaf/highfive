@@ -1,6 +1,6 @@
 (function($) {
   // Chrome likes to send the request as XML, which fails when there's no body
-  // (e.g. links that post).
+  // (e.g. links that post).  Not necessary with jQuery 1.4.
   var setContentType = function(xhr) { xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded") }
 
   // Spooky action at a distance (link_to_remote).
@@ -19,17 +19,13 @@
         options.type = "post"
         options.data = { _method: method }
       }
-      options.element = link;
+      options.context = link;
+      options.dataType = success ? "html" : "script";
       options.success = success ?
-        function(response)              { $("#" + success).html(response) } :
-        function(response, status, xhr) {
-          try {
-            eval(response)
-            link.trigger("success", [response, status, xhr])
-          } catch(ex) { console.log(ex) }
-        }
+        function(response)              { $(document.getElementById(success)).html(response) } :
+        function(response, status, xhr) { link.trigger("success", [response, status, xhr]) }
       options.error = error ?
-        function(xhr, status, ex) { $("#" + error).html(xhr.responseText) } :
+        function(xhr, status, ex) { $(document.getElementById(error)).html(xhr.responseText) } :
         function(xhr, status, ex) { link.trigger("failure", [xhr, status, ex]) }
       $.ajax(options);
     }
@@ -54,17 +50,13 @@
         options.type = "post"
         options.data = options.data + "&_method=" + method
       }
-      options.element = form;
+      options.context = form;
+      options.dataType = success ? "html" : "script";
       options.success = success ?
-        function(response)              { $("#" + success).html(response) } :
-        function(response, status, xhr) {
-          try {
-            eval(response)
-            form.trigger("success", [response, status, xhr])
-          } catch(ex) { console.log(ex) }
-        }
+        function(response)              { $(document.getElementById(success)).html(response) } :
+        function(response, status, xhr) { form.trigger("success", [response, status, xhr]) }
       options.error = error ?
-        function(xhr, status, ex) { $("#" + error).html(xhr.responseText) } :
+        function(xhr, status, ex) { $(document.getElementById(error)).html(xhr.responseText) } :
         function(xhr, status, ex) { form.trigger("failure", [xhr, status, ex]) }
       buttons.attr("disabled", "disabled");
       options.complete = function() { buttons.attr("disabled", null) }
