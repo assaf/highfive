@@ -42,7 +42,6 @@ module ActionView
         end
         html["data-confirm"]         = options.delete(:confirm)
         html["data-remote"]          = "true"
-        html["onsubmit"] = "$(this).trigger('remote');return false"
         html.merge!(options)
 
         form_tag(html.delete(:action) || url_for(url), html, &block)

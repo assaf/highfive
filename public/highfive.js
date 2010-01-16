@@ -1,16 +1,12 @@
 (function($) {
-  // Chrome likes to send the request as XML, which fails when there's no body
-  // (e.g. links that post).  Not necessary with jQuery 1.4.
-  var setContentType = function(xhr) { xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded") }
-
   // Spooky action at a distance (link_to_remote).
   $("a[data-remote]").live("remote", function() {
     var link = $(this),
         method = (link.attr("data-method") || "get").toLowerCase(),
         question = link.attr("data-confirm"),
         success = link.attr("data-success"),
-        error = link.attr("data-failure"),
-        options = { beforeSend: setContentType };
+        error = link.attr("data-failure");
+        options = { contentType: "application/x-www-form-urlencoded" };
     if (!question || confirm(question)) {
       options.url = link.attr("href"); 
       if (method == "get" || method == "post")
@@ -19,7 +15,7 @@
         options.type = "post"
         options.data = { _method: method }
       }
-      options.context = link;
+      options.element = link;
       options.dataType = success ? "html" : "script";
       options.success = success ?
         function(response)              { $(document.getElementById(success)).html(response) } :
@@ -40,7 +36,7 @@
         success = form.attr("data-success"),
         error = form.attr("data-failure"),
         buttons = form.find(":submit:enabled,button:enabled"),
-        options = { beforeSend: setContentType };
+        options = { contentType: "application/x-www-form-urlencoded" };
     if (!question || confirm(question)) {
       options.url = form.attr("action"); 
       options.data = form.serialize();
@@ -50,7 +46,7 @@
         options.type = "post"
         options.data = options.data + "&_method=" + method
       }
-      options.context = form;
+      options.element = form;
       options.dataType = success ? "html" : "script";
       options.success = success ?
         function(response)              { $(document.getElementById(success)).html(response) } :
@@ -63,5 +59,5 @@
       $.ajax(options);
     }
     return false
-  })
+  }).live("submit", function() { $(this).trigger("remote"); return false });
 }(jQuery))
