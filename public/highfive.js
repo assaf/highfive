@@ -60,4 +60,14 @@
     }
     return false
   }).live("submit", function() { $(this).trigger("remote"); return false });
+
+  // Links that are actually forms: looks like a link but no auto-follow.
+  $("a[href]").live("submit", function() {
+    var link = $(this),
+        method = link.attr("method") || "get",
+        form = $("<form>", { style: "display:none", method: method, action: link.attr("href") });
+    $(document.body).append(form);
+    form.submit();
+    return false
+  });
 }(jQuery))
