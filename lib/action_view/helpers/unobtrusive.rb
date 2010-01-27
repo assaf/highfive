@@ -49,8 +49,8 @@ module ActionView
 
     private
       def convert_options_to_javascript!(html_options, url = '')
-        html_options["data-confirm"] = html_options.delete("confirm")
-        html_options["data-popup"] = html_options.delete("popup")
+        html_options["data-confirm"] ||= html_options.delete("confirm")
+        html_options["data-popup"] ||= html_options.delete("popup")
         if method = html_options.delete("method")
           html_options["data-method"] = method
           html_options["onclick"] = "return false"
